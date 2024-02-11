@@ -7,28 +7,25 @@ const phoneRegex = new RegExp(
 );
 
 const formSchema = z.object({
-  barcode: z
-    .string()
-    .min(10, { message: "too short" })
-    .max(12, { message: "too long" })
-    .refine((val) => !Number.isNaN(parseInt(val, 10)), {
-      message: "Expected number, received a string",
-    }),
+
   firstName: z.string().min(2).max(50),
   lastName: z.string().min(2).max(50),
   phoneNumber: z.string().regex(phoneRegex, "Invalid Number!"),
   address: z.string().min(5).max(50),
+  item: z
+  .string()
+  .min(2, { message: "too short" })
+  .max(33, { message: "too long" }),
+  orientation: z.enum(['L', 'C']).optional(),
+  width: z.string(),
+  height: z.string(),
   quantity: z
     .string()
     .refine((val) => !Number.isNaN(parseInt(val, 10)), {
       message: "Expected number, received a string",
     }),
   price: z
-    .string()
-    .refine((val) => !Number.isNaN(parseInt(val, 10)), {
-      message: "Expected number, received a string",
-    }),
-  unit: z.enum(["m", "m2", "m3"]),
+    .string(),
   description: z.string().min(10).max(300),
   drillHoles: z
     .string()
@@ -80,21 +77,47 @@ import { Textarea } from "../ui/textarea";
 import { useState } from "react";
 import { toast } from "../ui/use-toast";
 
+interface Material {
+  sysId: string,
+  color: string,
+  price: string,
+}
+
 export default function OrderForm() {
+
+  const materials: Material[] = [
+    {
+      sysId: 'qwe-123-123',
+      color: 'red',
+      price: '12'
+    },
+    {
+      sysId: 'qwe-234-234',
+      color: 'blue',
+      price: '13'
+    },
+    {
+      sysId: 'qwe-345-345',
+      color: 'green',
+      price: '14'
+    }
+  ]
+
   const [terms, setTerms] = useState<boolean>(false);
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      barcode: "12345678",
+      item: "12345678",
       firstName: "First name",
       lastName: "Last name",
       phoneNumber: "+359123123123",
       address: "123 Str. Unknown",
+      width: "0",
+      height: "0",
       quantity: "1",
-      price: "1",
-      unit: "m",
-      description: "description",
+      orientation: undefined,
+      description: "Description",
       drillHoles: "",
       hinges: "",
       express: "regular",
@@ -106,14 +129,15 @@ export default function OrderForm() {
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
     const dateObj = new Date();
+
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log(values);
+    console.log([dateObj, values]);
     toast({
       title: "Form submitted",
       description: 
       (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+        <pre className="mt-2 w-full rounded-lg bg-slate-950  text-lg p-4">
         <code className="text-white">{JSON.stringify(values, null, 2)}</code>
       </pre>
       )
@@ -126,6 +150,16 @@ export default function OrderForm() {
   const descriptionStyles =
     "hidden group-hover:flex min-w-[240px] absolute -top-2 left-0 text-green-500 font-semibold";
 
+    const calcPrice = (s : string) => {
+      const material = materials.filter((el) => el.color === s)
+      return material[0] ? material[0].price : null
+    }
+
+    const calcCutting = () => {
+      const priceOfCutting = 1.49
+      return Number(x.quantity) * 2 * priceOfCutting;
+    }
+
   return (
     <section
       className={cn(
@@ -136,24 +170,7 @@ export default function OrderForm() {
         <form onSubmit={form.handleSubmit(onSubmit)} className={cn(formStyles)}>
         {/* triangle playground */}
         {/* <span className='border-solid border-l-slate-700 border-l-[49px] transition-all rotate-[45deg] border-y-transparent border-y-[24px] border-r-0 absolute right-[50%] '></span> */}
-          <span className={cn("flex w-full gap-4 items-end")}>
-            <FormField
-              control={form.control}
-              name="barcode"
-              render={({ field }) => (
-                <FormItem className={cn("w-full")}>
-                  <FormLabel>Barcode number</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Barcode" {...field} />
-                  </FormControl>
-                  <FormDescription className={cn(descriptionStyles)}>
-                    Barcode number
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </span>
+
           <span className={cn("grid grid-cols-1 md:grid-cols-2 gap-4 ")}>
             <FormField
               control={form.control}
@@ -230,8 +247,71 @@ export default function OrderForm() {
               )}
             />
           </span>
-          <span className="grid grid-cols-3 gap-4  w-full h-full">
+          <FormField
+              control={form.control}
+              name="item"
+              render={({ field }) => (
+                <FormItem className={cn("group relative")}>
+                <FormLabel className={cn("group-hover:opacity-0")}>Item</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue='item name'>
+                  <FormControl>
+                    <SelectTrigger className='className="w-full min-w-[180px]'>
+                      <SelectValue placeholder="Select units" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                  {materials.map((m) => (
+                    <SelectItem key={`select key-${m.sysId}`} value={m.color}>{m.color}</SelectItem>
+                  ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription className={cn(descriptionStyles)}>
+                  Value  $ {field.value }
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+              )}
+            />
+          <span className="grid grid-cols-4 gap-4  w-full h-full">
 
+
+          <FormField
+              control={form.control}
+              name="width"
+              render={({ field }) => (
+                <FormItem className={cn("group relative")}>
+                  <FormLabel className={cn("group-hover:opacity-0")}>
+                    Width
+                  </FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="" {...field} />
+                  </FormControl>
+                  <FormDescription className={cn(descriptionStyles)}>
+                    Item's width
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="height"
+              render={({ field }) => (
+                <FormItem className={cn("group relative")}>
+                  <FormLabel className={cn("group-hover:opacity-0")}>
+                    Height
+                  </FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="" {...field} />
+                  </FormControl>
+                  <FormDescription className={cn(descriptionStyles)}>
+                    Item's height
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="quantity"
@@ -244,7 +324,7 @@ export default function OrderForm() {
                     <Input type="number" placeholder="" {...field} />
                   </FormControl>
                   <FormDescription className={cn(descriptionStyles)}>
-                    input something
+                    Item quantity
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -253,29 +333,10 @@ export default function OrderForm() {
 
             <FormField
               control={form.control}
-              name="price"
+              name="orientation"
               render={({ field }) => (
                 <FormItem className={cn("group relative")}>
-                  <FormLabel className={cn("group-hover:opacity-0")}>
-                    Price
-                  </FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="" {...field} />
-                  </FormControl>
-                  <FormDescription className={cn(descriptionStyles)}>
-                    The client's address for delivery.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="unit"
-              render={({ field }) => (
-                <FormItem className={cn("group relative")}>
-                <FormLabel className={cn("group-hover:opacity-0")}>Units</FormLabel>
+                <FormLabel className={cn("group-hover:opacity-0")}>Orientation</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger className='className="w-full min-w-[180px]'>
@@ -283,18 +344,23 @@ export default function OrderForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="m">Metres</SelectItem>
-                    <SelectItem value="m2">Sq Meters</SelectItem>
-                    <SelectItem value="m3">Cubic Meters</SelectItem>
+                    <SelectItem value="L">Lengthwise</SelectItem>
+                    <SelectItem value="C">Crosswise</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormDescription className={cn(descriptionStyles)}>
-                  Please select the units carefully.
+                  {field.value}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
               )}
             />
+          </span>
+
+          <Separator />
+          <span className={cn('grid grid-cols-3 gap-4 text-end')}>
+                {!!calcPrice(x.item) ? <h4 className={cn('font-semibold')}>Price per m2: {calcPrice(x.item)} BGN</h4> : <h4 className='opacity-0'>Price per m2: null BGN</h4>}
+                <h5>Total price: {Number(x.width) * Number(x.height) * Number(calcPrice(x.item)) * Number(x.quantity)}</h5>
           </span>
 
           <FormField
