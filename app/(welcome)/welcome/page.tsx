@@ -1,4 +1,9 @@
 import React from "react";
+import { cn } from "@/lib/utils";
+import CompanyLogoComponent from "@/components/server/company-logo";
+import { NavigationMenuComponent } from "@/components/client/nav-button-profile";
+
+import OrderForm from "@/components/client/order-form";
 
 interface DataType {
   // TODO
@@ -27,12 +32,25 @@ export default async function Page() {
 
   return (
     // child of <main>
-    <span className="flex bg-slate-500 min-h-screen flex-col items-center justify-between p-24">
-      {/* Display a list of items */}
-      <>
-      {data?.map((el: any) => <span key={el.id}>{el.title}</span>)}
+    <span className="flex bg-slate-200 min-h-screen flex-col items-center">
+      {/* Display a list of items */}<>
+      {/* {data?.map((el: any) => <span key={el.id}>{el.title}</span>)} */}
       </>
       {/* TODO display components */}
+      <header className={cn('bg-slate-50 w-full h-full flex min-h-4 p-4')}>
+        {/* logo */}
+        <CompanyLogoComponent />
+        {/* logged in user */}
+        
+        {/* nav buttons */}
+        <span className={cn('flex gap-4 text-slate-800')}>
+          {/* dropdwon menu from user button */}
+          {/* dropdown menu from nav button */}
+          <NavigationMenuComponent />
+
+        </span>
+      </header>
+      <OrderForm />
     </span>
   );
 }
