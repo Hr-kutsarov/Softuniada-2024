@@ -117,6 +117,7 @@ export default function OrderForm() {
       height: "0",
       quantity: "1",
       orientation: undefined,
+      price: "1",
       description: "Description",
       drillHoles: "",
       hinges: "",
@@ -153,11 +154,6 @@ export default function OrderForm() {
     const calcPrice = (s : string) => {
       const material = materials.filter((el) => el.color === s)
       return material[0] ? material[0].price : null
-    }
-
-    const calcCutting = () => {
-      const priceOfCutting = 1.49
-      return Number(x.quantity) * 2 * priceOfCutting;
     }
 
   return (
@@ -358,9 +354,9 @@ export default function OrderForm() {
           </span>
 
           <Separator />
-          <span className={cn('grid grid-cols-3 gap-4 text-end')}>
-                {!!calcPrice(x.item) ? <h4 className={cn('font-semibold')}>Price per m2: {calcPrice(x.item)} BGN</h4> : <h4 className='opacity-0'>Price per m2: null BGN</h4>}
-                <h5>Total price: {Number(x.width) * Number(x.height) * Number(calcPrice(x.item)) * Number(x.quantity)}</h5>
+          <span className={cn('grid grid-cols-2 gap-4 text-end')}>
+                <h4>Price per m2: {calcPrice(x.item)} BGN</h4>
+                <h5>Total price: {Number(x.width) * Number(x.height) * Number(x.price) * Number(x.quantity)}</h5>
           </span>
 
           <FormField
