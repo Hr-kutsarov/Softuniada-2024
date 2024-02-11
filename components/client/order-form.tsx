@@ -3,22 +3,44 @@
 import { z } from "zod";
 
 const phoneRegex = new RegExp(
-    /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
-  );
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+);
 
 const formSchema = z.object({
-    barcode: z.number().positive(),
-    firstName: z.string().min(2).max(50),
-    lastName: z.string().min(2).max(50),
-    phoneNumber: z.string().regex(phoneRegex, 'Invalid Number!'),
-    address: z.string().min(5).max(50),
-    quantity: z.number().positive().lte(10000).finite(),
-    price: z.number().positive().safe().finite(),
-    unit: z.enum(["m", "m2", "m3"]),
-    description: z.string().min(10).max(300),
-    drillHoles: z.string().refine((val) => !Number.isNaN(parseInt(val, 10)), {message: 'Expected number, received a string'}),
-    hinges: z.string().refine((val) => !Number.isNaN(parseInt(val, 10)), {message: 'Expected number, received a string'}),
-    express: z.enum(["true", "false"]).optional()
+  barcode: z
+    .string()
+    .min(10, { message: "too short" })
+    .max(12, { message: "too long" })
+    .refine((val) => !Number.isNaN(parseInt(val, 10)), {
+      message: "Expected number, received a string",
+    }),
+  firstName: z.string().min(2).max(50),
+  lastName: z.string().min(2).max(50),
+  phoneNumber: z.string().regex(phoneRegex, "Invalid Number!"),
+  address: z.string().min(5).max(50),
+  quantity: z
+    .string()
+    .refine((val) => !Number.isNaN(parseInt(val, 10)), {
+      message: "Expected number, received a string",
+    }),
+  price: z
+    .string()
+    .refine((val) => !Number.isNaN(parseInt(val, 10)), {
+      message: "Expected number, received a string",
+    }),
+  unit: z.enum(["m", "m2", "m3"]),
+  description: z.string().min(10).max(300),
+  drillHoles: z
+    .string()
+    .refine((val) => !Number.isNaN(parseInt(val, 10)), {
+      message: "Expected number, received a string",
+    }),
+  hinges: z
+    .string()
+    .refine((val) => !Number.isNaN(parseInt(val, 10)), {
+      message: "Expected number, received a string",
+    }),
+  express: z.enum(["regular", "express"]).optional(),
 });
 
 import { AnimatePresence, motion } from "framer-motion";
@@ -58,25 +80,24 @@ import { Textarea } from "../ui/textarea";
 import { useState } from "react";
 import { toast } from "../ui/use-toast";
 
-
 export default function OrderForm() {
   const [terms, setTerms] = useState<boolean>(false);
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { 
-        barcode: 12345678,
-        firstName: 'First name',
-        lastName: 'Last name',
-        phoneNumber: '+359123123123',
-        address: '123 Str. Unknown',
-        quantity: 1,
-        price: 1,
-        unit: 'm',
-        description: 'description',
-        drillHoles: '',
-        hinges: '',
-        express: 'false'
+    defaultValues: {
+      barcode: "12345678",
+      firstName: "First name",
+      lastName: "Last name",
+      phoneNumber: "+359123123123",
+      address: "123 Str. Unknown",
+      quantity: "1",
+      price: "1",
+      unit: "m",
+      description: "description",
+      drillHoles: "",
+      hinges: "",
+      express: "regular",
     },
   });
 
@@ -89,15 +110,21 @@ export default function OrderForm() {
     // ✅ This will be type-safe and validated.
     console.log(values);
     toast({
-        title: "Form submitted",
-        description: `Created ${dateObj}`,
-      })
+      title: "Form submitted",
+      description: 
+      (
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+        <code className="text-white">{JSON.stringify(values, null, 2)}</code>
+      </pre>
+      )
+    });
   }
 
   const formStyles =
     "flex flex-col gap-4 bg-zinc-500/5 p-8 w-full m-8 rounded-2xl md:max-w-[650px] lg:max-w-[960px]";
 
-  const descriptionStyles = "hidden group-hover:flex min-w-[240px] absolute -top-2 left-0 text-green-500 font-semibold"
+  const descriptionStyles =
+    "hidden group-hover:flex min-w-[240px] absolute -top-2 left-0 text-green-500 font-semibold";
 
   return (
     <section
@@ -107,6 +134,8 @@ export default function OrderForm() {
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className={cn(formStyles)}>
+        {/* triangle playground */}
+        {/* <span className='border-solid border-l-slate-700 border-l-[49px] transition-all rotate-[45deg] border-y-transparent border-y-[24px] border-r-0 absolute right-[50%] '></span> */}
           <span className={cn("flex w-full gap-4 items-end")}>
             <FormField
               control={form.control}
@@ -115,13 +144,9 @@ export default function OrderForm() {
                 <FormItem className={cn("w-full")}>
                   <FormLabel>Barcode number</FormLabel>
                   <FormControl>
-                    <Input placeholder="Barcode" {...field} />
+                    <Input type="number" placeholder="Barcode" {...field} />
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
+                  <FormDescription className={cn(descriptionStyles)}>
                     Barcode number
                   </FormDescription>
                   <FormMessage />
@@ -139,13 +164,9 @@ export default function OrderForm() {
                     First Name
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="" {...field} />
+                    <Input type="text" placeholder="" {...field} />
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
+                  <FormDescription className={cn(descriptionStyles)}>
                     The client's first name.
                   </FormDescription>
                   <FormMessage />
@@ -161,13 +182,9 @@ export default function OrderForm() {
                     Last Name
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="..." {...field} />
+                    <Input type="text" placeholder="..." {...field} />
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
+                  <FormDescription className={cn(descriptionStyles)}>
                     The client's last name
                   </FormDescription>
                   <FormMessage />
@@ -185,13 +202,9 @@ export default function OrderForm() {
                     Phone number
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="..." {...field} />
+                    <Input type="text" placeholder="..." {...field} />
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
+                  <FormDescription className={cn(descriptionStyles)}>
                     The client's phone number.
                   </FormDescription>
                   <FormMessage />
@@ -207,13 +220,9 @@ export default function OrderForm() {
                     Address
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="shadcn" {...field} />
+                    <Input type="text" placeholder="" {...field} />
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
+                  <FormDescription className={cn(descriptionStyles)}>
                     The client's address for delivery.
                   </FormDescription>
                   <FormMessage />
@@ -222,7 +231,7 @@ export default function OrderForm() {
             />
           </span>
           <span className="grid grid-cols-3 gap-4  w-full h-full">
-            {/* quantity */}
+
             <FormField
               control={form.control}
               name="quantity"
@@ -232,13 +241,9 @@ export default function OrderForm() {
                     Quantity
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="" {...field} />
+                    <Input type="number" placeholder="" {...field} />
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
+                  <FormDescription className={cn(descriptionStyles)}>
                     input something
                   </FormDescription>
                   <FormMessage />
@@ -246,7 +251,6 @@ export default function OrderForm() {
               )}
             />
 
-            {/* price */}
             <FormField
               control={form.control}
               name="price"
@@ -256,56 +260,43 @@ export default function OrderForm() {
                     Price
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="" {...field} />
+                    <Input type="number" placeholder="" {...field} />
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
+                  <FormDescription className={cn(descriptionStyles)}>
                     The client's address for delivery.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {/* unit */}
+
             <FormField
               control={form.control}
               name="unit"
               render={({ field }) => (
                 <FormItem className={cn("group relative")}>
-                  <FormLabel className={cn("group-hover:opacity-0")}>
-                    Unit
-                  </FormLabel>
+                <FormLabel className={cn("group-hover:opacity-0")}>Units</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <Select>
-                      <SelectTrigger className="w-full min-w-[180px]">
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>{field.name}</SelectLabel>
-                          <SelectItem value="m">Metres</SelectItem>
-                          <SelectItem value="m2">Square metres</SelectItem>
-                          <SelectItem value="m3">Cubic metres</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <SelectTrigger className='className="w-full min-w-[180px]'>
+                      <SelectValue placeholder="Select units" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
-                    select
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+                  <SelectContent>
+                    <SelectItem value="m">Metres</SelectItem>
+                    <SelectItem value="m2">Sq Meters</SelectItem>
+                    <SelectItem value="m3">Cubic Meters</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription className={cn(descriptionStyles)}>
+                  Please select the units carefully.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
               )}
             />
           </span>
-          {/* description */}
+
           <FormField
             control={form.control}
             name="description"
@@ -317,11 +308,7 @@ export default function OrderForm() {
                 <FormControl>
                   <Textarea placeholder="" {...field} />
                 </FormControl>
-                <FormDescription
-                  className={cn(
-                    descriptionStyles
-                  )}
-                >
+                <FormDescription className={cn(descriptionStyles)}>
                   Description
                 </FormDescription>
                 <FormMessage />
@@ -331,7 +318,6 @@ export default function OrderForm() {
           <Separator className={cn("")} />
           <h5 className={cn("font-semibold")}>Additional</h5>
           <span className="grid grid-cols-3 gap-4  w-full h-full">
-            {/* Drills */}
             <FormField
               control={form.control}
               name="drillHoles"
@@ -341,13 +327,9 @@ export default function OrderForm() {
                     Drill holes
                   </FormLabel>
                   <FormControl>
-                    <Input type='number' {...field} />
+                    <Input type="number" {...field} />
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
+                  <FormDescription className={cn(descriptionStyles)}>
                     BGN 123 each*
                   </FormDescription>
                   <FormMessage />
@@ -355,7 +337,6 @@ export default function OrderForm() {
               )}
             />
 
-            {/* price */}
             <FormField
               control={form.control}
               name="hinges"
@@ -365,51 +346,38 @@ export default function OrderForm() {
                     Hinges
                   </FormLabel>
                   <FormControl>
-                    <Input type='number' placeholder="" {...field} />
+                    <Input type="number" placeholder="" {...field} />
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
+                  <FormDescription className={cn(descriptionStyles)}>
                     BGN 2 each*
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {/* unit */}
+
             <FormField
               control={form.control}
               name="express"
               render={({ field }) => (
                 <FormItem className={cn("group relative")}>
-                  <FormLabel className={cn("group-hover:opacity-0")}>
-                    Express order
-                  </FormLabel>
+                <FormLabel className={cn("group-hover:opacity-0")}>Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <Select>
-                      <SelectTrigger className="min-w-[180px] w-full">
-                        <SelectValue placeholder="+25%" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>{field.name}</SelectLabel>
-                          <SelectItem value={'true'}>Yes</SelectItem>
-                          <SelectItem value={'false'}>No</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <SelectTrigger className='className="w-full min-w-[180px]'>
+                      <SelectValue placeholder="Order type" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormDescription
-                    className={cn(
-                      descriptionStyles
-                    )}
-                  >
-                    should be dropdown
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+                  <SelectContent>
+                    <SelectItem value="regular">Regular</SelectItem>
+                    <SelectItem value="express">Express</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription className={cn(descriptionStyles)}>
+                  Please select the units carefully.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
               )}
             />
           </span>
@@ -419,12 +387,17 @@ export default function OrderForm() {
             <Checkbox className="h-6 w-6" onClick={() => setTerms(!terms)} />I
             accept the terms and conditions.
           </span>
-          
+
           <Separator />
-          <span className={cn('grid grid-cols-3')}>
-            <p>Price drilling: {Number(x.drillHoles)*5}</p>
-            <p>Adding hinges: {Number(x.hinges)*1.25}</p>
-            <h1 className={cn('font-semibold')}>Total price: {Number(x.drillHoles)*5 + Number(x.hinges)*1.25 + Number(x.price)*Number(x.quantity)}</h1>
+          <span className={cn("grid grid-cols-3")}>
+            <p>Price drilling: {Number(x.drillHoles) * 5}</p>
+            <p>Adding hinges: {Number(x.hinges) * 1.25}</p>
+            <h1 className={cn("font-semibold")}>
+              Total price:{" "}
+              {Number(x.drillHoles) * 2 +
+                Number(x.hinges) * 1.25 +
+                Number(x.price) * Number(x.quantity)}
+            </h1>
           </span>
 
           <AnimatePresence mode="wait">
@@ -441,7 +414,6 @@ export default function OrderForm() {
               </motion.span>
             ) : null}
           </AnimatePresence>
-
         </form>
       </Form>
     </section>
