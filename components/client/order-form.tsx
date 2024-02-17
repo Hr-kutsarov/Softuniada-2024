@@ -31,13 +31,14 @@ const formSchema = z.object({
     .string()
     .refine((val) => !Number.isNaN(parseInt(val, 10)), {
       message: "Expected number, received a string",
-    }),
+    }).optional(),
+    
   hinges: z
     .string()
     .refine((val) => !Number.isNaN(parseInt(val, 10)), {
       message: "Expected number, received a string",
-    }),
-  express: z.enum(["regular", "express"]).optional(),
+    }).optional(),
+  express: z.enum(["regular", "express"]),
 });
 
 import { AnimatePresence, motion } from "framer-motion";
@@ -119,13 +120,13 @@ export default function OrderForm() {
       orientation: undefined,
       price: "1",
       description: "Description",
-      drillHoles: "",
-      hinges: "",
+      drillHoles: "0",
+      hinges: "0",
       express: "regular",
     },
   });
 
-  const x = form.getValues();
+  
 
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -151,6 +152,8 @@ export default function OrderForm() {
   const descriptionStyles =
     "hidden group-hover:flex min-w-[240px] absolute -top-2 left-0 text-green-500 font-semibold";
 
+    const formValues = form.getValues();
+
     const calcPrice = (s : string) => {
       const material = materials.filter((el) => el.color === s)
       return material[0] ? Number(material[0].price).toFixed(2) : null
@@ -162,11 +165,28 @@ export default function OrderForm() {
       return area ? area.toFixed(2) : null
     }
 
-    const calcTotalPrice = () => {
+    const calcDrilling = () => {
+      const PRICE_DRILLING: number = 0.99;
+      return PRICE_DRILLING * Number(formValues.drillHoles)
+    }
+
+    const calcPriceCutting = () => {
+      const PRICE_CUTTING: number = 1.49
+      return Number(formValues.quantity) * PRICE_CUTTING
+    }
+
+    const calcTotalPrice = ( type: string ) => {
       const formValues = form.getValues();
       const x = calcPrice(formValues.item);
-      const y = calcArea()
-      return !!x && !!y ? Number(x) * Number(y) : null
+      const y = calcArea();
+      const z = calcPriceCutting();
+      const zx = calcDrilling();
+      if (type === 'regular') {
+        return !!x && !!y ? ((Number(x) * Number(y) * Number(formValues.quantity)) + z + zx).toFixed(2) : null
+      } else {
+        return !!x && !!y ? ((( Number(x) * Number(y) * Number(formValues.quantity)) + z + zx) * 1.25).toFixed(2) : null
+      }
+        
     }
 
   return (
@@ -275,7 +295,7 @@ export default function OrderForm() {
                   </SelectContent>
                 </Select>
                 <FormDescription className={cn(descriptionStyles)}>
-                  Value  $ {field.value }
+                  Selected material '{field.value }'
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -367,10 +387,9 @@ export default function OrderForm() {
           </span>
 
           <Separator />
-          <span className={cn('hidden grid-cols-1 gap-2 text-end', !!calcTotalPrice() && 'grid')}>
+          <span className={cn('hidden grid-cols-1 gap-2 text-end', !!calcTotalPrice(formValues.express) && 'grid')}>
                 <h5>Area: {calcArea()} m2</h5>
-                <h5>Price: {calcPrice(x.item)} BGN</h5>
-                <h4>Total price: {calcTotalPrice()} BGN</h4>
+                <h5>Price: {calcPrice(formValues.item)} BGN</h5>
           </span>
 
           <FormField
@@ -406,7 +425,7 @@ export default function OrderForm() {
                     <Input type="number" {...field} />
                   </FormControl>
                   <FormDescription className={cn(descriptionStyles)}>
-                    BGN 123 each*
+                    BGN 0.99 each*
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -425,7 +444,7 @@ export default function OrderForm() {
                     <Input type="number" placeholder="" {...field} />
                   </FormControl>
                   <FormDescription className={cn(descriptionStyles)}>
-                    BGN 2 each*
+                    BGN 1.49 each*
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -466,13 +485,11 @@ export default function OrderForm() {
 
           <Separator />
           <span className={cn("grid grid-cols-3")}>
-            <p>Price drilling: {Number(x.drillHoles) * 5}</p>
-            <p>Adding hinges: {Number(x.hinges) * 1.25}</p>
+            <p>Price drilling: {(Number(formValues.drillHoles) * 0.99).toFixed(2)}</p>
+            <p>Adding hinges: {Number(formValues.hinges) * 1.49}</p>
             <h1 className={cn("font-semibold")}>
-              Total price:{" "}
-              {Number(x.drillHoles) * 2 +
-                Number(x.hinges) * 1.25 +
-                Number(x.price) * Number(x.quantity)}
+              Total price:{" "} 
+              {calcTotalPrice(formValues.express)} BGN
             </h1>
           </span>
 
