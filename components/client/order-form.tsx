@@ -367,7 +367,7 @@ export default function OrderForm() {
           </span>
 
           <Separator />
-          <span className={cn('grid grid-cols-1 gap-2 text-end')}>
+          <span className={cn('hidden grid-cols-1 gap-2 text-end', !!calcTotalPrice() && 'grid')}>
                 <h5>Area: {calcArea()} m2</h5>
                 <h5>Price: {calcPrice(x.item)} BGN</h5>
                 <h4>Total price: {calcTotalPrice()} BGN</h4>
