@@ -348,7 +348,7 @@ export default function OrderForm() {
                 <FormLabel className={cn("group-hover:opacity-0")}>Orientation</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger className='className="w-full min-w-[180px]'>
+                    <SelectTrigger className='className="w-full'>
                       <SelectValue placeholder="Select units" />
                     </SelectTrigger>
                   </FormControl>
