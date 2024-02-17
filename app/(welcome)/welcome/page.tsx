@@ -36,20 +36,12 @@ export default async function Page() {
       {/* Display a list of items */}<>
       {/* {data?.map((el: any) => <span key={el.id}>{el.title}</span>)} */}
       </>
-      {/* TODO display components */}
+      {/* HEADER */}
       <header className={cn('bg-slate-50 w-full h-full flex min-h-4 p-4')}>
-        {/* logo */}
         <CompanyLogoComponent />
-        {/* logged in user */}
-        
-        {/* nav buttons */}
-        <span className={cn('flex gap-4 text-slate-800')}>
-          {/* dropdwon menu from user button */}
-          {/* dropdown menu from nav button */}
-          <NavigationMenuComponent />
-
-        </span>
+        <NavigationMenuComponent />
       </header>
+      {/* CONTENT */}
       <OrderForm />
     </span>
   );
